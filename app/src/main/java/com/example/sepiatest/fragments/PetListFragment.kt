@@ -1,5 +1,7 @@
 package com.example.sepiatest.fragments
 
+import android.R.string.yes
+import android.annotation.SuppressLint
 import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
@@ -8,22 +10,23 @@ import android.widget.Toast
 import androidx.appcompat.app.AlertDialog
 import androidx.core.os.bundleOf
 import androidx.fragment.app.Fragment
+import androidx.lifecycle.ViewModelProvider
 import androidx.navigation.fragment.findNavController
 import com.example.sepiatest.R
 import com.example.sepiatest.adapter.PetAdapter
 import com.example.sepiatest.databinding.FragmentPetBinding
+import com.example.sepiatest.models.Content
 import com.example.sepiatest.models.Pet
-import com.example.sepiatest.models.PetsList
 import com.example.sepiatest.utils.AssertsManager
+import com.example.sepiatest.viewmodels.MainViewModel
 import com.google.gson.Gson
-import org.json.JSONObject
 import java.text.SimpleDateFormat
 import java.util.*
 
 class PetListFragment : Fragment() {
-    private var petItemList = arrayListOf<Pet>()
     private lateinit var petAdapter: PetAdapter
-    private lateinit var petsList: PetsList
+
+    private lateinit var mainViewModel: MainViewModel
 
     var isValidWeekDay = false
 
@@ -32,15 +35,9 @@ class PetListFragment : Fragment() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
-        val petsJson = AssertsManager.openStringFile("petslist.json", requireContext())
-        val gson = Gson().fromJson(petsJson, PetsList::class.java)
-
-        gson.pets.forEach {
-            val pet = Pet(it.content_url, it.date_added, it.image_url, it.title)
-            petItemList.add(pet)
-        }
-
-        petsList = PetsList(petItemList)
+        mainViewModel =
+            ViewModelProvider(requireActivity())[MainViewModel::class.java]
+        mainViewModel.updatePetList()
     }
 
     override fun onCreateView(
@@ -53,21 +50,21 @@ class PetListFragment : Fragment() {
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
-        petAdapter = PetAdapter(requireContext(), petsList.pets, clickView)
-        binding.bookList.adapter = petAdapter
+
+        mainViewModel.petListLiveData.observe(requireActivity(), androidx.lifecycle.Observer {
+            petAdapter = PetAdapter(requireContext(), it, clickView)
+            binding.bookList.adapter = petAdapter
+        })
+
     }
 
     private val clickView = object : PetAdapter.OnItemClick {
+        @SuppressLint("SimpleDateFormat")
         override fun onPetItemClick(pet: Pet) {
-            val contentJson = AssertsManager.openStringFile("config.json", requireContext())
-            val contentJsonObject = JSONObject(contentJson)
+            val configJson = AssertsManager.openStringFile("config.json", requireContext())
+            val configData = Gson().fromJson(configJson, Content::class.java)
 
-            // currentDate.time = 49260000 //20260000
-
-            val data = contentJsonObject.getJSONObject("settings")
-
-            val workingHours = data.getString("workHours")
-            val result: List<String> = workingHours.split(" ")
+            val result: List<String> = configData.settings.workHours.split(" ")
 
             val formatter = SimpleDateFormat("HH:mm")
             val date1: Date = formatter.parse(result[1]) as Date
@@ -89,10 +86,11 @@ class PetListFragment : Fragment() {
                 allowedWeekDays.add("Fri")
             }
 
-            isValidWeekDay = allowedWeekDays.contains(formatter.format(Date()))
+            val dayFormatter = SimpleDateFormat("EEE")
+            isValidWeekDay = allowedWeekDays.contains(dayFormatter.format(Date()))
 
             if (currentDate.time <= date1.time || currentDate.time >= date2.time || isValidWeekDay.not()) {
-                showPopup(workingHours)
+                showPopup(configData.settings.workHours)
             } else {
                 val bundle = bundleOf("content_url" to pet.content_url)
                 findNavController().navigate(
@@ -108,10 +106,10 @@ class PetListFragment : Fragment() {
         alertDialogBuilder.setTitle("Only Open At")
         alertDialogBuilder.setMessage(workingHours)
 
-        alertDialogBuilder.setPositiveButton(android.R.string.yes) { _, _ ->
+        alertDialogBuilder.setPositiveButton(yes) { _, _ ->
             Toast.makeText(
                 requireContext(),
-                android.R.string.yes, Toast.LENGTH_SHORT
+                yes, Toast.LENGTH_SHORT
             ).show()
         }
         alertDialogBuilder.show()
