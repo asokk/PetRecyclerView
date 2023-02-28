@@ -44,11 +44,4 @@ object AssertsManager {
             .readBytes()
             .toString(Charsets.UTF_8)
     }
-
-    /*fun loadJsonFile(name: String): String {
-        return File("src/main/resources/$name")
-            .inputStream()
-            .readBytes()
-            .toString(Charsets.UTF_8)
-    }*/
 }

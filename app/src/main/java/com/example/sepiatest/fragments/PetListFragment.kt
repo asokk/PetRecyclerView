@@ -18,8 +18,8 @@ import com.example.sepiatest.databinding.FragmentPetBinding
 import com.example.sepiatest.models.Content
 import com.example.sepiatest.models.Pet
 import com.example.sepiatest.utils.AssertsManager
+import com.example.sepiatest.utils.Status
 import com.example.sepiatest.viewmodels.MainViewModel
-import com.google.gson.Gson
 import java.text.SimpleDateFormat
 import java.util.*
 
@@ -51,18 +51,36 @@ class PetListFragment : Fragment() {
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
-        mainViewModel.petListLiveData.observe(requireActivity(), androidx.lifecycle.Observer {
-            petAdapter = PetAdapter(requireContext(), it, clickView)
-            binding.bookList.adapter = petAdapter
-        })
+        mainViewModel.petListLiveData.observe(requireActivity()) {
+            when (it.status) {
+                Status.SUCCESS -> {
+                    Thread.sleep(1000)
+                    it.data?.forEach { _ ->
+                        petAdapter = PetAdapter(requireContext(), it.data, clickView)
+                        binding.petList.adapter = petAdapter
+                    }
+                    binding.petList.visibility = View.VISIBLE
+                    binding.progressBar.visibility = View.GONE
+                }
 
+                Status.ERROR -> {
+                    Toast.makeText(requireContext(), it.message, Toast.LENGTH_LONG).show()
+                    binding.progressBar.visibility = View.GONE
+                }
+
+                Status.LOADING -> {
+                    binding.petList.visibility = View.GONE
+                    binding.progressBar.visibility = View.VISIBLE
+                }
+            }
+        }
     }
 
     private val clickView = object : PetAdapter.OnItemClick {
         @SuppressLint("SimpleDateFormat")
         override fun onPetItemClick(pet: Pet) {
             val configJson = AssertsManager.openStringFile("config.json", requireContext())
-            val configData = Gson().fromJson(configJson, Content::class.java)
+            val configData = AssertsManager.convertJsonStringToObject(configJson, Content::class.java)
 
             val result: List<String> = configData.settings.workHours.split(" ")
 

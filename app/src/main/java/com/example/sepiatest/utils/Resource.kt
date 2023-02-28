@@ -1,9 +1,7 @@
 package com.example.sepiatest.utils
 
 data class Resource<out T>(val status: Status, val data: T?, val message: String?) {
-
     companion object {
-
         fun <T> success(data: T?): Resource<T> {
             return Resource(Status.SUCCESS, data, null)
         }
@@ -16,5 +14,4 @@ data class Resource<out T>(val status: Status, val data: T?, val message: String
             return Resource(Status.LOADING, data, null)
         }
     }
-
 }

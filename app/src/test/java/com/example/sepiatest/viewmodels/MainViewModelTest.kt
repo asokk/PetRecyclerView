@@ -1,45 +1,39 @@
 package com.example.sepiatest.viewmodels
 
+import android.app.Application
 import android.arch.core.executor.testing.InstantTaskExecutorRule
-import android.content.Context
-import androidx.test.ext.junit.runners.AndroidJUnit4
 import com.example.sepiatest.models.Content
 import com.example.sepiatest.models.PetsList
 import com.example.sepiatest.utils.AssertsManager
 import com.google.gson.Gson
-import io.mockk.mockk
+import com.nhaarman.mockitokotlin2.mock
 import junit.framework.Assert.assertEquals
 import junit.framework.Assert.assertNotNull
+import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
 import org.junit.runner.RunWith
+import org.junit.runners.JUnit4
 
-@RunWith(AndroidJUnit4::class)
+@RunWith(JUnit4::class)
 class MainViewModelTest {
-/*    private lateinit var mainViewModel: MainViewModel
+   /* @get:Rule
+    var instantExecutorRule = InstantTaskExecutorRule()*/
     private val app: Application = mock()
-    val context: Context = InstrumentationRegistry.getInstrumentation().context
-
-    @Mock
-    private val mockApplicationContext: Context? = null
+    private lateinit var mainViewModel: MainViewModel
 
     @Before
     fun setup() {
         mainViewModel = MainViewModel(app)
-    }*/
-
-    @get:Rule
-    var instantExecutorRule = InstantTaskExecutorRule()
+    }
 
     @Test
     fun test_verify_pet_list_json() {
-        val data123  = AssertsManager.loadJsonFile("petslist.json")
-        assertNotNull(data123)
+        val petJson  = AssertsManager.loadJsonFile("petslist.json")
+        assertNotNull(petJson)
 
-        val petList = Gson().fromJson(data123, PetsList::class.java)
-
+        val petList = Gson().fromJson(petJson, PetsList::class.java)
         assertEquals(10, petList.pets.size)
-
         assertEquals("Cat", petList.pets[0].title)
         assertEquals("https://en.wikipedia.org/wiki/Cat", petList.pets[0].content_url)
         assertEquals("https://upload.wikimedia.org/wikipedia/commons/thumb/0/0b/Cat_poster_1.jpg/1200px-Cat_poster_1.jpg", petList.pets[0].image_url)
@@ -57,12 +51,6 @@ class MainViewModelTest {
         assertNotNull(configJson)
         val configData = Gson().fromJson(configJson, Content::class.java)
         assertEquals("M-F 9:00 - 18:00", configData.settings.workHours)
-    }
-
-    @Test
-    fun test_view_model() {
-        val context = mockk<Context>(relaxed = true)
-        //mainViewModel.updatePetList()
     }
 }
 
