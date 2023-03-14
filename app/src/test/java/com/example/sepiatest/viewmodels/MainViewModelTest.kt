@@ -2,11 +2,14 @@ package com.example.sepiatest.viewmodels
 
 import android.app.Application
 import android.arch.core.executor.testing.InstantTaskExecutorRule
+import android.content.Context
 import com.example.sepiatest.models.Content
 import com.example.sepiatest.models.PetsList
 import com.example.sepiatest.utils.AssertsManager
 import com.google.gson.Gson
 import com.nhaarman.mockitokotlin2.mock
+import io.mockk.every
+import io.mockk.mockk
 import junit.framework.Assert.assertEquals
 import junit.framework.Assert.assertNotNull
 import org.junit.Before
@@ -17,10 +20,12 @@ import org.junit.runners.JUnit4
 
 @RunWith(JUnit4::class)
 class MainViewModelTest {
-   /* @get:Rule
-    var instantExecutorRule = InstantTaskExecutorRule()*/
+    @get:Rule
+    var instantExecutorRule = InstantTaskExecutorRule()
     private val app: Application = mock()
     private lateinit var mainViewModel: MainViewModel
+
+    val mContextMock = mockk<Context>(relaxed = true)
 
     @Before
     fun setup() {
@@ -51,6 +56,11 @@ class MainViewModelTest {
         assertNotNull(configJson)
         val configData = Gson().fromJson(configJson, Content::class.java)
         assertEquals("M-F 9:00 - 18:00", configData.settings.workHours)
+    }
+
+    @Test
+    fun test_json_asset() {
+        //mainViewModel.updatePetList()
     }
 }
 

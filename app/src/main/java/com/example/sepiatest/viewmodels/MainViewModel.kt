@@ -25,6 +25,7 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
             }
         }
 
-        petListLiveData.postValue(Resource.success(petItemList))
+        //petListLiveData.postValue(Resource.success(petItemList))
+        petListLiveData.value = Resource.success(petItemList)
     }
 }

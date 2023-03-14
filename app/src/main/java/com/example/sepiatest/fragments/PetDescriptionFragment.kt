@@ -7,7 +7,6 @@ import android.view.ViewGroup
 import androidx.fragment.app.Fragment
 import com.example.sepiatest.databinding.FragmentPetDescriptionBinding
 
-
 class PetDescriptionFragment : Fragment() {
 
     private var _binding: FragmentPetDescriptionBinding? = null
